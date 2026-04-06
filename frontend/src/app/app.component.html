@@ -1,0 +1,411 @@
+<div class="container">
+  <!-- Progress Bar -->
+  <div class="progress-container">
+    <div class="progress-bar" [style.width.%]="progress"></div>
+  </div>
+
+  <!-- Nav Dots -->
+  <div class="nav-dots">
+    <div *ngFor="let page of pageFlow; let i = index"
+         class="dot"
+         [class.active]="currentPageIndex === i"
+         [class.disabled]="i > currentPageIndex"
+         (click)="handleDotClick(i)">
+    </div>
+  </div>
+
+  <!-- Page 0: Welcome -->
+  <div class="page text-center" [class.active]="currentPageId === 'page0'">
+    <div class="header">
+      <h1>Welcome</h1>
+      <h1>Beumer Digitalization</h1>
+      <p>We value your feedback to improve our services and products.</p>
+      <img src="Logo-BEUMER-Group.png" alt="BEUMER Group" style="width:100%;max-width:500px;margin:20px 0;">
+    </div>
+    <button class="btn" (click)="nextPage()">Start Feedback</button>
+  </div>
+
+  <!-- Page 1: Section A -->
+  <div class="page" [class.active]="currentPageId === 'page1'">
+    <div class="header"><h1>Company Information</h1><p>Section A</p></div>
+    <div class="form-group">
+      <label>Country</label>
+      <select [(ngModel)]="formData.sectionA.country" [class.error]="hasError('country')">
+        <option value="" disabled>Select Country</option>
+        <option *ngFor="let c of countries" [value]="c">{{c}}</option>
+      </select>
+      <span class="field-error" *ngIf="hasError('country')">Country is required</span>
+    </div>
+    <div class="form-group">
+      <label>Company Name</label>
+      <input type="text" [(ngModel)]="formData.sectionA.companyName" placeholder="Enter company name" [class.error]="hasError('companyName')">
+      <span class="field-error" *ngIf="hasError('companyName')">Company name is required</span>
+    </div>
+    <div class="form-group">
+      <label>Plant Location</label>
+      <input type="text" [(ngModel)]="formData.sectionA.plantLocation" placeholder="Enter plant location" [class.error]="hasError('plantLocation')">
+      <span class="field-error" *ngIf="hasError('plantLocation')">Plant location is required</span>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-secondary" (click)="prevPage()">Back</button>
+      <button class="btn" (click)="nextPage()">Next</button>
+    </div>
+  </div>
+
+  <!-- Page 2: Section B -->
+  <div class="page" [class.active]="currentPageId === 'page2'">
+    <div class="header"><h1>Contact Details</h1><p>Section B</p></div>
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" [(ngModel)]="formData.sectionB.name" placeholder="Enter your name" [class.error]="hasError('name')">
+      <span class="field-error" *ngIf="hasError('name')">Name is required</span>
+    </div>
+    <div class="form-group">
+      <label>Designation</label>
+      <select [(ngModel)]="formData.sectionB.designation" [class.error]="hasError('designation')">
+        <option value="" disabled>Select Designation</option>
+        <option *ngFor="let d of designations" [value]="d">{{d}}</option>
+      </select>
+      <span class="field-error" *ngIf="hasError('designation')">Designation is required</span>
+    </div>
+    <div class="form-group">
+      <label>Contact Number (Optional)</label>
+      <input type="tel" [(ngModel)]="formData.sectionB.contact" placeholder="Enter contact number">
+    </div>
+    <div class="form-group">
+      <label>Email Address</label>
+      <div class="input-with-action">
+        <input type="email" [(ngModel)]="formData.sectionB.email" placeholder="Enter email address"
+               [class.error]="hasError('email')"
+               [disabled]="isEmailVerified"
+               (ngModelChange)="resetEmailVerification()">
+        <button class="btn-action" (click)="sendOtp()" [disabled]="sendingOtp || isEmailVerified">
+          {{sendingOtp ? 'Sending...' : 'Send OTP'}}
+        </button>
+      </div>
+      <span class="field-error" *ngIf="hasError('email')">Email is required</span>
+      <div *ngIf="otpSent && !isEmailVerified" style="margin-top:15px;">
+        <label>Verification Code</label>
+        <div class="input-with-action">
+          <input type="text" [(ngModel)]="otpInput" placeholder="6-digit code" maxlength="6">
+          <button class="btn-action" (click)="verifyOtp()" [disabled]="verifyingOtp">
+            {{verifyingOtp ? 'Verifying...' : 'Verify'}}
+          </button>
+        </div>
+      </div>
+      <div *ngIf="isEmailVerified" class="verified-badge">Email Verified</div>
+      <div *ngIf="otpStatus" class="otp-status" [class.success]="otpStatusType==='success'" [class.error]="otpStatusType==='error'">
+        {{otpStatus}}
+      </div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-secondary" (click)="prevPage()">Back</button>
+      <button class="btn" (click)="nextPage()">Next</button>
+    </div>
+  </div>
+
+  <!-- Page 3: Section C -->
+  <div class="page" [class.active]="currentPageId === 'page3'">
+    <div class="header"><h1>Product Selection</h1><p>Section C</p></div>
+    <div class="form-group">
+      <label>Select Product(s) used in your plant</label>
+      <div class="checkbox-group" [class.error-border]="hasError('products')">
+        <label class="checkbox-item">
+          <input type="checkbox" [checked]="isProductSelected('FillPac')" (change)="toggleProduct('FillPac', $any($event.target).checked)">
+          <span>BEUMER FillPac®</span>
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" [checked]="isProductSelected('BucketElevator')" (change)="toggleProduct('BucketElevator', $any($event.target).checked)">
+          <span>Bucket Elevator Condition Monitoring</span>
+        </label>
+      </div>
+      <span class="field-error" *ngIf="hasError('products')">{{errors['products']}}</span>
+    </div>
+
+    <!-- FillPac Details -->
+    <div *ngIf="isProductSelected('FillPac')" class="conditional-section">
+      <h3>BEUMER FillPac® Details</h3>
+      <div class="form-group">
+        <label>No. of Units</label>
+        <input type="number" [(ngModel)]="formData.sectionC.fillPac.units" min="1" placeholder="Enter number of units" [class.error]="hasError('fpUnits')">
+        <span class="field-error" *ngIf="hasError('fpUnits')">Required</span>
+      </div>
+      <div class="form-group">
+        <label>No. of Units for OEE Dashboard</label>
+        <select [(ngModel)]="formData.sectionC.fillPac.oeeUnits" [class.error]="hasError('fpOeeUnits')">
+          <option value="" disabled>Select</option>
+          <option *ngFor="let o of oeeUnitOptions" [value]="o">{{o}}</option>
+        </select>
+        <span class="field-error" *ngIf="hasError('fpOeeUnits')">Required</span>
+      </div>
+      <div class="form-group">
+        <label>Interested in Services</label>
+        <div class="checkbox-group">
+          <label class="checkbox-item" *ngFor="let svc of ['Dashboard','Maintenance','Automation']">
+            <input type="checkbox" [checked]="isServiceSelected('fpServices', svc)" (change)="toggleService('fpServices', svc, $any($event.target).checked)">
+            <span>{{svc === 'Automation' ? 'Process Automation' : svc}}</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bucket Elevator Details -->
+    <div *ngIf="isProductSelected('BucketElevator')" class="conditional-section">
+      <h3>Bucket Elevator Details</h3>
+      <div class="form-group">
+        <label>No. of Units</label>
+        <input type="number" [(ngModel)]="formData.sectionC.bucketElevator.units" min="1" placeholder="Enter number of units" [class.error]="hasError('beUnits')">
+        <span class="field-error" *ngIf="hasError('beUnits')">Required</span>
+      </div>
+      <div class="form-group">
+        <label>No. of Units with Condition Monitoring</label>
+        <select [(ngModel)]="formData.sectionC.bucketElevator.conditionMonitoringUnits" [class.error]="hasError('beMonitoring')">
+          <option value="" disabled>Select</option>
+          <option *ngFor="let m of monitoringOptions" [value]="m">{{m}}</option>
+        </select>
+        <span class="field-error" *ngIf="hasError('beMonitoring')">Required</span>
+      </div>
+      <div class="form-group">
+        <label>Type of Bucket Elevator</label>
+        <input type="text" [(ngModel)]="formData.sectionC.bucketElevator.type" placeholder="e.g. Belt / Chain" [class.error]="hasError('beType')">
+        <span class="field-error" *ngIf="hasError('beType')">Required</span>
+      </div>
+      <div class="form-group">
+        <label>Installation Date</label>
+        <input type="date" [(ngModel)]="formData.sectionC.bucketElevator.installationDate" [class.error]="hasError('beDate')">
+        <span class="field-error" *ngIf="hasError('beDate')">Required</span>
+      </div>
+      <div class="form-group">
+        <label>Is it currently working efficiently?</label>
+        <input type="text" [(ngModel)]="formData.sectionC.bucketElevator.workingEfficiently" placeholder="Yes / No (Brief reason)" [class.error]="hasError('beEfficient')">
+        <span class="field-error" *ngIf="hasError('beEfficient')">Required</span>
+      </div>
+      <div class="form-group">
+        <label>Any issue with Belt Slippage / Wobbling?</label>
+        <input type="text" [(ngModel)]="formData.sectionC.bucketElevator.beltSlippage" placeholder="Details" [class.error]="hasError('beSlippage')">
+        <span class="field-error" *ngIf="hasError('beSlippage')">Required</span>
+      </div>
+      <div class="form-group">
+        <label>Current Annual Maintenance Cost</label>
+        <input type="text" [(ngModel)]="formData.sectionC.bucketElevator.maintenanceCost" placeholder="Approx estimation" [class.error]="hasError('beCost')">
+        <span class="field-error" *ngIf="hasError('beCost')">Required</span>
+      </div>
+      <div class="form-group">
+        <label>Interested in Services</label>
+        <div class="checkbox-group">
+          <label class="checkbox-item" *ngFor="let svc of ['Automation','Optimization']">
+            <input type="checkbox" [checked]="isServiceSelected('beServices', svc)" (change)="toggleService('beServices', svc, $any($event.target).checked)">
+            <span>{{svc === 'Optimization' ? 'System Optimization' : svc}}</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn btn-secondary" (click)="prevPage()">Back</button>
+      <button class="btn" (click)="nextPage()">Next</button>
+    </div>
+  </div>
+
+  <!-- Dynamic FillPac Pages -->
+  <ng-container *ngFor="let unitNum of fillPacPages">
+    <div class="page" [class.active]="currentPageId === 'page_fp_' + unitNum">
+      <div class="header"><h1>FillPac Feedback</h1><p>Section D (Unit {{unitNum}})</p></div>
+      <div class="feedback-grid">
+        <div class="form-group">
+          <label>Types of FillPac (Spouts)</label>
+          <select [(ngModel)]="getFpFeedback(unitNum).spouts" [class.error]="hasError('fp_'+(unitNum-1)+'_spouts')">
+            <option value="" disabled>Select</option>
+            <option *ngFor="let s of spoutOptions" [value]="s">{{s}}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Installation Date</label>
+          <input type="date" [(ngModel)]="getFpFeedback(unitNum).installationDate" [class.error]="hasError('fp_'+(unitNum-1)+'_installationDate')">
+        </div>
+        <div class="form-group" [class.error-group]="hasError('fp_'+(unitNum-1)+'_oeeAccurate')">
+          <label>Is OEE data accurate?</label>
+          <div class="radio-group">
+            <label><input type="radio" [name]="'fp_oee_'+unitNum" value="Yes" [checked]="getFpFeedback(unitNum).oeeAccurate==='Yes'" (change)="getFpFeedback(unitNum).oeeAccurate='Yes'"> Yes</label>
+            <label><input type="radio" [name]="'fp_oee_'+unitNum" value="No" [checked]="getFpFeedback(unitNum).oeeAccurate==='No'" (change)="getFpFeedback(unitNum).oeeAccurate='No'"> No</label>
+          </div>
+        </div>
+        <div class="form-group" [class.error-group]="hasError('fp_'+(unitNum-1)+'_perfAccurate')">
+          <label>Is Performance data accurate?</label>
+          <div class="radio-group">
+            <label><input type="radio" [name]="'fp_perf_'+unitNum" value="Yes" [checked]="getFpFeedback(unitNum).perfAccurate==='Yes'" (change)="getFpFeedback(unitNum).perfAccurate='Yes'"> Yes</label>
+            <label><input type="radio" [name]="'fp_perf_'+unitNum" value="No" [checked]="getFpFeedback(unitNum).perfAccurate==='No'" (change)="getFpFeedback(unitNum).perfAccurate='No'"> No</label>
+          </div>
+        </div>
+        <div class="form-group" [class.error-group]="hasError('fp_'+(unitNum-1)+'_qualAccurate')">
+          <label>Is Quality data accurate?</label>
+          <div class="radio-group">
+            <label><input type="radio" [name]="'fp_qual_'+unitNum" value="Yes" [checked]="getFpFeedback(unitNum).qualAccurate==='Yes'" (change)="getFpFeedback(unitNum).qualAccurate='Yes'"> Yes</label>
+            <label><input type="radio" [name]="'fp_qual_'+unitNum" value="No" [checked]="getFpFeedback(unitNum).qualAccurate==='No'" (change)="getFpFeedback(unitNum).qualAccurate='No'"> No</label>
+          </div>
+        </div>
+        <div class="form-group" [class.error-group]="hasError('fp_'+(unitNum-1)+'_availAccurate')">
+          <label>Is Availability data accurate?</label>
+          <div class="radio-group">
+            <label><input type="radio" [name]="'fp_avail_'+unitNum" value="Yes" [checked]="getFpFeedback(unitNum).availAccurate==='Yes'" (change)="getFpFeedback(unitNum).availAccurate='Yes'"> Yes</label>
+            <label><input type="radio" [name]="'fp_avail_'+unitNum" value="No" [checked]="getFpFeedback(unitNum).availAccurate==='No'" (change)="getFpFeedback(unitNum).availAccurate='No'"> No</label>
+          </div>
+        </div>
+        <div class="form-group" [class.error-group]="hasError('fp_'+(unitNum-1)+'_bagsMatch')">
+          <label>Do no. of bags match with Physical stock?</label>
+          <div class="radio-group">
+            <label><input type="radio" [name]="'fp_bags_'+unitNum" value="Yes" [checked]="getFpFeedback(unitNum).bagsMatch==='Yes'" (change)="getFpFeedback(unitNum).bagsMatch='Yes'"> Yes</label>
+            <label><input type="radio" [name]="'fp_bags_'+unitNum" value="No" [checked]="getFpFeedback(unitNum).bagsMatch==='No'" (change)="getFpFeedback(unitNum).bagsMatch='No'"> No</label>
+          </div>
+        </div>
+        <div class="form-group" [class.error-group]="hasError('fp_'+(unitNum-1)+'_dataFreq')">
+          <label>Frequency of data generation</label>
+          <div class="radio-group">
+            <label><input type="radio" [name]="'fp_freq_'+unitNum" value="Real-time" [checked]="getFpFeedback(unitNum).dataFreq==='Real-time'" (change)="getFpFeedback(unitNum).dataFreq='Real-time'"> Real-time</label>
+            <label><input type="radio" [name]="'fp_freq_'+unitNum" value="Hourly" [checked]="getFpFeedback(unitNum).dataFreq==='Hourly'" (change)="getFpFeedback(unitNum).dataFreq='Hourly'"> Hourly</label>
+            <label><input type="radio" [name]="'fp_freq_'+unitNum" value="Daily" [checked]="getFpFeedback(unitNum).dataFreq==='Daily'" (change)="getFpFeedback(unitNum).dataFreq='Daily'"> Daily</label>
+          </div>
+        </div>
+        <div class="form-group" [class.error-group]="hasError('fp_'+(unitNum-1)+'_bottlenecks')">
+          <label>Helps in identifying bottlenecks?</label>
+          <div class="radio-group">
+            <label><input type="radio" [name]="'fp_btn_'+unitNum" value="Yes" [checked]="getFpFeedback(unitNum).bottlenecks==='Yes'" (change)="getFpFeedback(unitNum).bottlenecks='Yes'"> Yes</label>
+            <label><input type="radio" [name]="'fp_btn_'+unitNum" value="No" [checked]="getFpFeedback(unitNum).bottlenecks==='No'" (change)="getFpFeedback(unitNum).bottlenecks='No'"> No</label>
+          </div>
+        </div>
+        <div class="form-group" [class.error-group]="hasError('fp_'+(unitNum-1)+'_usefulMetric')">
+          <label>Is any other metric useful for you?</label>
+          <div class="radio-group">
+            <label><input type="radio" [name]="'fp_metric_'+unitNum" value="Yes" [checked]="getFpFeedback(unitNum).usefulMetric==='Yes'" (change)="getFpFeedback(unitNum).usefulMetric='Yes'"> Yes</label>
+            <label><input type="radio" [name]="'fp_metric_'+unitNum" value="No" [checked]="getFpFeedback(unitNum).usefulMetric==='No'" (change)="getFpFeedback(unitNum).usefulMetric='No'"> No</label>
+          </div>
+        </div>
+        <div class="form-group" [class.error-group]="hasError('fp_'+(unitNum-1)+'_missingFeatures')">
+          <label>Missing features in dashboard?</label>
+          <div class="radio-group">
+            <label><input type="radio" [name]="'fp_missing_'+unitNum" value="Yes" [checked]="getFpFeedback(unitNum).missingFeatures==='Yes'" (change)="getFpFeedback(unitNum).missingFeatures='Yes'"> Yes</label>
+            <label><input type="radio" [name]="'fp_missing_'+unitNum" value="No" [checked]="getFpFeedback(unitNum).missingFeatures==='No'" (change)="getFpFeedback(unitNum).missingFeatures='No'"> No</label>
+          </div>
+        </div>
+        <div class="form-group" [class.error-group]="hasError('fp_'+(unitNum-1)+'_faultInfo')">
+          <label>Are fault information alerts useful?</label>
+          <div class="radio-group">
+            <label><input type="radio" [name]="'fp_fault_'+unitNum" value="Yes" [checked]="getFpFeedback(unitNum).faultInfo==='Yes'" (change)="getFpFeedback(unitNum).faultInfo='Yes'"> Yes</label>
+            <label><input type="radio" [name]="'fp_fault_'+unitNum" value="No" [checked]="getFpFeedback(unitNum).faultInfo==='No'" (change)="getFpFeedback(unitNum).faultInfo='No'"> No</label>
+          </div>
+        </div>
+        <div class="form-group" [class.error-group]="hasError('fp_'+(unitNum-1)+'_bagInfo')">
+          <label>Is Average bag weight info useful?</label>
+          <div class="radio-group">
+            <label><input type="radio" [name]="'fp_baginfo_'+unitNum" value="Yes" [checked]="getFpFeedback(unitNum).bagInfo==='Yes'" (change)="getFpFeedback(unitNum).bagInfo='Yes'"> Yes</label>
+            <label><input type="radio" [name]="'fp_baginfo_'+unitNum" value="No" [checked]="getFpFeedback(unitNum).bagInfo==='No'" (change)="getFpFeedback(unitNum).bagInfo='No'"> No</label>
+          </div>
+        </div>
+        <div class="form-group" [class.error-group]="hasError('fp_'+(unitNum-1)+'_userFriendly')">
+          <label>Is the dashboard user-friendly?</label>
+          <div class="radio-group">
+            <label><input type="radio" [name]="'fp_uf_'+unitNum" value="Yes" [checked]="getFpFeedback(unitNum).userFriendly==='Yes'" (change)="getFpFeedback(unitNum).userFriendly='Yes'"> Yes</label>
+            <label><input type="radio" [name]="'fp_uf_'+unitNum" value="No" [checked]="getFpFeedback(unitNum).userFriendly==='No'" (change)="getFpFeedback(unitNum).userFriendly='No'"> No</label>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Suggestion for better visualizations</label>
+        <textarea rows="3" [(ngModel)]="getFpFeedback(unitNum).visualizations" placeholder="Tell us more..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Overall comments / suggestions</label>
+        <textarea rows="3" [(ngModel)]="getFpFeedback(unitNum).comments" placeholder="Any additional feedback..."></textarea>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-secondary" (click)="prevPage()">Back</button>
+        <button class="btn" (click)="nextPage()">{{isLastContent ? 'Submit Feedback' : 'Next'}}</button>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Dynamic Bucket Elevator Pages -->
+  <ng-container *ngFor="let unitNum of bucketElevatorPages">
+    <div class="page" [class.active]="currentPageId === 'page_be_' + unitNum">
+      <div class="header"><h1>Bucket Elevator Monitoring</h1><p>Section D (Unit {{unitNum}})</p></div>
+      <div class="feedback-grid">
+        <div class="form-group" [class.error-group]="hasError('be_'+(unitNum-1)+'_understanding')">
+          <label>Did you understand the displayed monitoring data?</label>
+          <div class="radio-group">
+            <label><input type="radio" [name]="'be_und_'+unitNum" value="Yes" [checked]="getBeFeedback(unitNum).understanding==='Yes'" (change)="getBeFeedback(unitNum).understanding='Yes'"> Yes</label>
+            <label><input type="radio" [name]="'be_und_'+unitNum" value="No" [checked]="getBeFeedback(unitNum).understanding==='No'" (change)="getBeFeedback(unitNum).understanding='No'"> No</label>
+          </div>
+        </div>
+        <div class="form-group" [class.error-group]="hasError('be_'+(unitNum-1)+'_effectiveness')">
+          <label>Effectiveness for predictive maintenance?</label>
+          <div class="radio-group">
+            <label><input type="radio" [name]="'be_eff_'+unitNum" value="High" [checked]="getBeFeedback(unitNum).effectiveness==='High'" (change)="getBeFeedback(unitNum).effectiveness='High'"> High</label>
+            <label><input type="radio" [name]="'be_eff_'+unitNum" value="Medium" [checked]="getBeFeedback(unitNum).effectiveness==='Medium'" (change)="getBeFeedback(unitNum).effectiveness='Medium'"> Medium</label>
+            <label><input type="radio" [name]="'be_eff_'+unitNum" value="Low" [checked]="getBeFeedback(unitNum).effectiveness==='Low'" (change)="getBeFeedback(unitNum).effectiveness='Low'"> Low</label>
+          </div>
+        </div>
+        <div class="form-group" [class.error-group]="hasError('be_'+(unitNum-1)+'_trainingSatisfaction')">
+          <label>Are you satisfied with the training provided?</label>
+          <div class="radio-group">
+            <label><input type="radio" [name]="'be_train_'+unitNum" value="Yes" [checked]="getBeFeedback(unitNum).trainingSatisfaction==='Yes'" (change)="getBeFeedback(unitNum).trainingSatisfaction='Yes'"> Yes</label>
+            <label><input type="radio" [name]="'be_train_'+unitNum" value="No" [checked]="getBeFeedback(unitNum).trainingSatisfaction==='No'" (change)="getBeFeedback(unitNum).trainingSatisfaction='No'"> No</label>
+          </div>
+        </div>
+        <div class="form-group" [class.error-group]="hasError('be_'+(unitNum-1)+'_userFriendly')">
+          <label>Is the dashboard user-friendly?</label>
+          <div class="radio-group">
+            <label><input type="radio" [name]="'be_uf_'+unitNum" value="Yes" [checked]="getBeFeedback(unitNum).userFriendly==='Yes'" (change)="getBeFeedback(unitNum).userFriendly='Yes'"> Yes</label>
+            <label><input type="radio" [name]="'be_uf_'+unitNum" value="No" [checked]="getBeFeedback(unitNum).userFriendly==='No'" (change)="getBeFeedback(unitNum).userFriendly='No'"> No</label>
+          </div>
+        </div>
+        <div class="form-group" [class.error-group]="hasError('be_'+(unitNum-1)+'_usageFreq')">
+          <label>Frequency of dashboard usage</label>
+          <div class="radio-group">
+            <label><input type="radio" [name]="'be_freq_'+unitNum" value="Daily" [checked]="getBeFeedback(unitNum).usageFreq==='Daily'" (change)="getBeFeedback(unitNum).usageFreq='Daily'"> Daily</label>
+            <label><input type="radio" [name]="'be_freq_'+unitNum" value="Weekly" [checked]="getBeFeedback(unitNum).usageFreq==='Weekly'" (change)="getBeFeedback(unitNum).usageFreq='Weekly'"> Weekly</label>
+            <label><input type="radio" [name]="'be_freq_'+unitNum" value="Rarely" [checked]="getBeFeedback(unitNum).usageFreq==='Rarely'" (change)="getBeFeedback(unitNum).usageFreq='Rarely'"> Rarely</label>
+          </div>
+        </div>
+        <div class="form-group" [class.error-group]="hasError('be_'+(unitNum-1)+'_reducedBreakdowns')">
+          <label>Did the system help reduce breakdowns?</label>
+          <div class="radio-group">
+            <label><input type="radio" [name]="'be_break_'+unitNum" value="Significant" [checked]="getBeFeedback(unitNum).reducedBreakdowns==='Significant'" (change)="getBeFeedback(unitNum).reducedBreakdowns='Significant'"> Significant</label>
+            <label><input type="radio" [name]="'be_break_'+unitNum" value="Slightly" [checked]="getBeFeedback(unitNum).reducedBreakdowns==='Slightly'" (change)="getBeFeedback(unitNum).reducedBreakdowns='Slightly'"> Slightly</label>
+            <label><input type="radio" [name]="'be_break_'+unitNum" value="No" [checked]="getBeFeedback(unitNum).reducedBreakdowns==='No'" (change)="getBeFeedback(unitNum).reducedBreakdowns='No'"> No</label>
+          </div>
+        </div>
+        <div class="form-group" [class.error-group]="hasError('be_'+(unitNum-1)+'_supportRating')">
+          <label>Rating for technical support</label>
+          <div class="radio-group">
+            <label><input type="radio" [name]="'be_rating_'+unitNum" value="5" [checked]="getBeFeedback(unitNum).supportRating==='5'" (change)="getBeFeedback(unitNum).supportRating='5'"> ⭐⭐⭐⭐⭐</label>
+            <label><input type="radio" [name]="'be_rating_'+unitNum" value="4" [checked]="getBeFeedback(unitNum).supportRating==='4'" (change)="getBeFeedback(unitNum).supportRating='4'"> ⭐⭐⭐⭐</label>
+            <label><input type="radio" [name]="'be_rating_'+unitNum" value="3" [checked]="getBeFeedback(unitNum).supportRating==='3'" (change)="getBeFeedback(unitNum).supportRating='3'"> ⭐⭐⭐</label>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Suggestions for improvements</label>
+        <textarea rows="3" [(ngModel)]="getBeFeedback(unitNum).suggestions" placeholder="Tell us more..."></textarea>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-secondary" (click)="prevPage()">Back</button>
+        <button class="btn" (click)="nextPage()">{{isLastContent ? 'Submit Feedback' : 'Next'}}</button>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Success Page -->
+  <div class="page" [class.active]="isSuccess">
+    <div class="success-content">
+      <div class="success-icon">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="45" fill="#4CAF50"/>
+          <path d="M30 50 L45 65 L70 35" stroke="white" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h1>Thank You!</h1>
+      <p>Your feedback has been successfully submitted. We appreciate your time and input.</p>
+      <button class="btn" (click)="resetForm()">Send Another Response</button>
+    </div>
+  </div>
+</div>

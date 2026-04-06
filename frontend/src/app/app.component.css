@@ -1,0 +1,6 @@
+/* Component-level styles are intentionally minimal — all shared styles live in styles.css */
+
+/* Welcome page centering */
+.page.active:first-of-type {
+    text-align: center;
+}
