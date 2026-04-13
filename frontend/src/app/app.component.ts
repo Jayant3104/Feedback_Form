@@ -52,7 +52,7 @@ export class AppComponent implements OnInit {
 
   fillPacPages: number[] = [];
   bucketElevatorPages: number[] = [];
-
+  hoverRating: Record<number, number> = {};
   constructor(private feedbackService: FeedbackService, private cdr: ChangeDetectorRef) {}
   ngOnInit(): void {}
 
@@ -176,8 +176,13 @@ export class AppComponent implements OnInit {
   }
 
   getFpFeedback(unitNum: number): FillPacFeedback { return this.formData.sectionD_FillPac[unitNum - 1]; }
-  getBeFeedback(unitNum: number): BucketElevatorFeedback { return this.formData.sectionD_BucketElevator[unitNum - 1]; }
+  getBeFeedback(unitNum: number): BucketElevatorFeedback { return this.formData.sectionD_BucketElevator[unitNum - 1] ?? {}; }
   hasError(key: string): boolean { return !!this.errors[key]; }
+
+  getRatingLabel(rating: number): string {
+  const labels: Record<number, string> = { 1: 'Poor', 2: 'Fair', 3: 'Good', 4: 'Very Good', 5: 'Excellent' };
+  return labels[rating] || '';
+}
 
   sendOtp(): void {
     if (!this.formData.sectionB.email) { this.errors['email'] = 'Required'; return; }

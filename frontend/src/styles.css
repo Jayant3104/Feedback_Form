@@ -375,3 +375,45 @@ select[disabled] {
 
 /* Welcome page */
 .text-center { text-align: center; }
+
+/* ── Star Rating ───────────────────────── */
+.star-rating-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0 4px;
+}
+
+.star-rating {
+  display: flex;
+  gap: 6px;
+}
+
+.star {
+  font-size: 2.2rem;
+  color: #d1d5db;
+  cursor: pointer;
+  transition: color 0.15s ease, transform 0.15s ease;
+  line-height: 1;
+  user-select: none;
+}
+
+.star.filled {
+  color: #f59e0b;
+}
+
+.star.hovered {
+  color: #fbbf24;
+  transform: scale(1.2);
+}
+
+.star:hover {
+  transform: scale(1.2);
+}
+
+.star-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f59e0b;
+  min-width: 80px;
+}

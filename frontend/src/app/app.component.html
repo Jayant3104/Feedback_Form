@@ -375,13 +375,25 @@
           </div>
         </div>
         <div class="form-group" [class.error-group]="hasError('be_'+(unitNum-1)+'_supportRating')">
-          <label>Rating for technical support</label>
-          <div class="radio-group">
-            <label><input type="radio" [name]="'be_rating_'+unitNum" value="5" [checked]="getBeFeedback(unitNum).supportRating==='5'" (change)="getBeFeedback(unitNum).supportRating='5'"> ⭐⭐⭐⭐⭐</label>
-            <label><input type="radio" [name]="'be_rating_'+unitNum" value="4" [checked]="getBeFeedback(unitNum).supportRating==='4'" (change)="getBeFeedback(unitNum).supportRating='4'"> ⭐⭐⭐⭐</label>
-            <label><input type="radio" [name]="'be_rating_'+unitNum" value="3" [checked]="getBeFeedback(unitNum).supportRating==='3'" (change)="getBeFeedback(unitNum).supportRating='3'"> ⭐⭐⭐</label>
-          </div>
-        </div>
+  <label>Rating for technical support</label>
+  <div class="star-rating-wrapper">
+    <div class="star-rating">
+      <span *ngFor="let star of [1,2,3,4,5]"
+            class="star"
+            [class.filled]="star <= (hoverRating[unitNum] || +getBeFeedback(unitNum).supportRating)"
+            [class.hovered]="star <= hoverRating[unitNum]"
+            (mouseenter)="hoverRating[unitNum] = star"
+            (mouseleave)="hoverRating[unitNum] = 0"
+            (click)="getBeFeedback(unitNum).supportRating = star.toString()">
+        ★
+      </span>
+    </div>
+    <span class="star-label" *ngIf="getBeFeedback(unitNum).supportRating">
+      {{ getRatingLabel(+getBeFeedback(unitNum).supportRating) }}
+    </span>
+  </div>
+  <span class="field-error" *ngIf="hasError('be_'+(unitNum-1)+'_supportRating')">Please select a rating</span>
+</div>
       </div>
       <div class="form-group">
         <label>Suggestions for improvements</label>
