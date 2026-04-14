@@ -51,6 +51,7 @@ export interface FillPacFeedback {
   userFriendly?: string;
   visualizations?: string;
   comments?: string;
+  machineId?: string;
 }
 
 export interface BucketElevatorFeedback {
@@ -62,6 +63,7 @@ export interface BucketElevatorFeedback {
   reducedBreakdowns?: string;
   supportRating?: string;
   suggestions?: string;
+  machineId?: string;
 }
 
 export interface FormData {
@@ -71,3 +73,4 @@ export interface FormData {
   sectionD_FillPac: FillPacFeedback[];
   sectionD_BucketElevator: BucketElevatorFeedback[];
 }
+
