@@ -20,7 +20,6 @@ export class AppComponent implements OnInit {
 
   countries = ['India', 'Germany', 'USA', 'Japan', 'France', 'UK', 'China', 'Brazil'];
   designations = ['Manager', 'Engineer', 'Operator', 'Technician', 'Analyst', 'Director'];
-  oeeUnitOptions = ['1', '2', '3', '4', '5+'];
   monitoringOptions = ['1', '2', '3+'];
   spoutOptions = ['8', '12', '16', '24'];
 
@@ -39,9 +38,9 @@ export class AppComponent implements OnInit {
     sectionB: { name: '', designation: '', contact: '', email: '' },
     sectionC: {
       products: [],
-      fillPac: { units: null, oeeUnits: '', services: [] },
+      fillPac: { units: null, oeeUnits: null, services: [] },
       bucketElevator: {
-        units: null, conditionMonitoringUnits: '', type: '',
+        units: null, conditionMonitoringUnits: null, type: '',
         installationDate: '', workingEfficiently: '', beltSlippage: '',
         maintenanceCost: '', services: []
       }
@@ -145,7 +144,7 @@ export class AppComponent implements OnInit {
     this.bucketElevatorPages = [];
     
     if (this.formData.sectionC.products.includes('FillPac')) {
-      const n = this.formData.sectionC.fillPac.units || 0;
+      const n = this.formData.sectionC.fillPac.oeeUnits || 0;
       if (this.formData.sectionD_FillPac.length > n) {
         this.formData.sectionD_FillPac = this.formData.sectionD_FillPac.slice(0, n);
       } else {
@@ -159,7 +158,7 @@ export class AppComponent implements OnInit {
     }
 
     if (this.formData.sectionC.products.includes('BucketElevator')) {
-      const n = this.formData.sectionC.bucketElevator.units || 0;
+      const n = this.formData.sectionC.bucketElevator.conditionMonitoringUnits || 0;
       if (this.formData.sectionD_BucketElevator.length > n) {
         this.formData.sectionD_BucketElevator = this.formData.sectionD_BucketElevator.slice(0, n);
       } else {
@@ -175,7 +174,7 @@ export class AppComponent implements OnInit {
     this.pageFlow.push('pageSuccess');
   }
 
-  getFpFeedback(unitNum: number): FillPacFeedback { return this.formData.sectionD_FillPac[unitNum - 1]; }
+  getFpFeedback(unitNum: number): FillPacFeedback { return this.formData.sectionD_FillPac[unitNum - 1] ?? {}; }
   getBeFeedback(unitNum: number): BucketElevatorFeedback { return this.formData.sectionD_BucketElevator[unitNum - 1] ?? {}; }
   hasError(key: string): boolean { return !!this.errors[key]; }
 

@@ -6,13 +6,13 @@ export interface SectionA {
 
 export interface FillPacSection {
   units: number | null;
-  oeeUnits: string;
+  oeeUnits: number | null;
   services: string[];
 }
 
 export interface BucketElevatorSection {
   units: number | null;
-  conditionMonitoringUnits: string;
+  conditionMonitoringUnits: number | null;
   type: string;
   installationDate: string;
   workingEfficiently: string;
