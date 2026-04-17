@@ -414,7 +414,7 @@
         <div class="form-group">
             <label>Machine ID</label>
             <input type="text" class="form-control" placeholder="Enter Machine ID"
-              [(ngModel)]="getFpFeedback(unitNum).machineId" name="machineId_{{unitNum}}"
+              [(ngModel)]="getBeFeedback(unitNum).machineId" name="machineId_{{unitNum}}"
               [class.error]="hasError('fp_' + (unitNum-1) + '_machineId')">
           </div>
         <div class="form-group" [class.error-group]="hasError('be_'+(unitNum-1)+'_understanding')">
